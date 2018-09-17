@@ -142,7 +142,9 @@ func osError(oserr C.OSErr) error {
 // cfstring efficiently creates a CFString from a Go String.
 func cfstring(s string) C.CFStringRef {
 	n := C.CFIndex(len(s))
-	return C.CFStringCreateWithBytes(nil, *(**C.UInt8)(unsafe.Pointer(&s)), n, C.kCFStringEncodingUTF8, 0)
+	// FIXME
+	var arg1 C.CFAllocatorRef
+	return C.CFStringCreateWithBytes(arg1, *(**C.UInt8)(unsafe.Pointer(&s)), n, C.kCFStringEncodingUTF8, 0)
 }
 
 // cfstringGo creates a Go string for a CoreFoundation string using the CoreFoundation UTF-8 converter.
@@ -356,7 +358,14 @@ func (c *Channel) SetPhonemeCb(phonemeCb func(PhonemeCode)) error {
 func (c *Channel) SpeakString(s string) error {
 	cfs := cfstring(s)
 	defer C.CFRelease(C.CFTypeRef(cfs))
-	return osError(C.SpeakCFString(c.csc, cfs, nil))
+	var options C.CFDictionaryRef
+	// FIXME: *options = nil
+	return osError(C.SpeakCFString(c.csc, cfs, options))
+}
+
+// TODO
+func setNilCFRef(v *C.CFDataRef) {
+	*v = 0
 }
 
 // SetRate sets the speech rate in words-per-minute.
